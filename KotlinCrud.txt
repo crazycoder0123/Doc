@@ -1,0 +1,187 @@
+activity_main.xml
+------------------
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <!-- Edit text to enter name -->
+    <EditText
+        android:id="@+id/enterName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Name"
+        android:textSize="22sp"
+        android:layout_margin="20sp"/>
+
+    <!-- Edit text to enter age -->
+    <EditText
+        android:id="@+id/enterAge"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20sp"
+        android:textSize="22sp"
+        android:hint="Enter Age"/>
+
+     <LinearLayout
+        android:layout_width="350dp"
+        android:layout_height="84dp"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="horizontal">
+        <Button
+            android:id="@+id/addName"
+            android:layout_width="150sp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="20sp"
+            android:text="Add Name"
+            android:textColor="#ffffff"
+            android:textSize="20sp" />
+        <Button
+            android:id="@+id/printName"
+            android:layout_width="150sp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="20sp"
+            android:text="Print Name"
+            android:textColor="#ffffff"
+            android:textSize="20sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="359dp">
+        <!-- Text view to get all name -->
+        <TextView
+            android:id="@+id/Name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="20sp"
+            android:layout_weight="1"
+            android:padding="10sp"
+            android:text="Name\n\n"
+            android:textAlignment="center"
+            android:textColor="#000000"
+            android:textSize="22sp" />
+
+        <!-- Text view to get all ages -->
+        <TextView
+            android:id="@+id/Age"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="20sp"
+            android:layout_weight="1"
+            android:padding="10sp"
+            android:text="Age\n\n"
+            android:textAlignment="center"
+            android:textColor="#000000"
+            android:textSize="22sp" />
+    </LinearLayout>
+
+</LinearLayout>
+------------------------------------------------------------------------------------
+DBHelper.kt
+-----------
+package com.example.mycrudkotlin
+
+import android.content.ContentValues
+import android.content.Context
+import android.database.Cursor
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
+
+class DBHelper(context: Context, factory: SQLiteDatabase.CursorFactory?) :
+    SQLiteOpenHelper(context, DATABASE_NAME, factory, DATABASE_VERSION) {
+
+    override fun onCreate(db: SQLiteDatabase) {
+
+        val query = ("CREATE TABLE " + TABLE_NAME + " ("
+                + ID_COL + " INTEGER PRIMARY KEY, " +
+                NAME_COl + " TEXT," +
+                AGE_COL + " TEXT" + ")")
+        db.execSQL(query)
+    }
+
+    override fun onUpgrade(db: SQLiteDatabase, p1: Int, p2: Int) {
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME)
+        onCreate(db)
+    }
+    fun addName(name : String, age : String ){
+        val values = ContentValues()
+        values.put(NAME_COl, name)
+        values.put(AGE_COL, age)
+        val db = this.writableDatabase
+        db.insert(TABLE_NAME, null, values)
+        db.close()
+    }
+
+    fun getName(): Cursor? {
+        val db = this.readableDatabase
+        return db.rawQuery("SELECT * FROM " + TABLE_NAME, null)
+    }
+
+    companion object{
+        private val DATABASE_NAME = "MyFriends"
+        private val DATABASE_VERSION = 1
+        val TABLE_NAME = "Friends"
+        val ID_COL = "id"
+        val NAME_COl = "name"
+        val AGE_COL = "age"
+    }
+}
+---------------------------------------------------------------------------------------------
+MainActivity.kt
+----------------
+package com.example.mycrudkotlin
+
+import android.annotation.SuppressLint
+import android.support.v7.app.AppCompatActivity
+import android.os.Bundle
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
+
+
+class MainActivity : AppCompatActivity() {
+    //@SuppressLint("Range")
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        val addName = findViewById<Button>(R.id.addName)
+        val printName = findViewById<Button>(R.id.printName)
+        val enterName = findViewById<EditText>(R.id.enterName)
+        val enterAge = findViewById<EditText>(R.id.enterAge)
+        val Name = findViewById<TextView>(R.id.Name)
+        val Age = findViewById<TextView>(R.id.Age)
+
+        addName.setOnClickListener{
+            val db = DBHelper(this, null)
+            val name = enterName.text.toString()
+            val age = enterAge.text.toString()
+            db.addName(name, age)
+            Toast.makeText(this, name + " added to database", Toast.LENGTH_LONG).show()
+            enterName.text.clear()
+            enterAge.text.clear()
+        }
+        printName.setOnClickListener{
+            val db = DBHelper(this, null)
+            val cursor = db.getName()
+            cursor!!.moveToFirst()
+            Name.append(cursor.getString(cursor.getColumnIndex(DBHelper.NAME_COl)) + "\n")
+            Age.append(cursor.getString(cursor.getColumnIndex(DBHelper.AGE_COL)) + "\n")
+            while(cursor.moveToNext()){
+                Name.append(cursor.getString(cursor.getColumnIndex(DBHelper.NAME_COl)) + "\n")
+                Age.append(cursor.getString(cursor.getColumnIndex(DBHelper.AGE_COL)) + "\n")
+            }
+            cursor.close()
+        }
+    }
+}

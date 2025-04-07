@@ -1,0 +1,367 @@
+activity_main.xml
+------------------
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Kotlin CRUD"
+        android:textSize="26dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.464"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.022" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="377dp"
+        android:layout_height="60dp"
+        android:layout_marginTop="32dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.529"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout3">
+
+        <Button
+            android:id="@+id/butSave"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Save" />
+
+        <Button
+            android:id="@+id/butView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="View" />
+
+        <Button
+            android:id="@+id/butDelete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="deleteRecord"
+            android:text="Delete" />
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="358dp"
+        android:layout_height="163dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.698"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2"
+        app:layout_constraintVertical_bias="0.173" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout3"
+        android:layout_width="343dp"
+        android:layout_height="186dp"
+        android:layout_marginTop="12dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView">
+
+        <EditText
+            android:id="@+id/txtid"
+            android:layout_width="380dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:ems="10"
+            android:hint="ID"
+            android:inputType="textPersonName"
+            android:text=""
+            android:textSize="20dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.434"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+        <EditText
+            android:id="@+id/txtName"
+            android:layout_width="387dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:ems="10"
+            android:hint="Name"
+            android:inputType="textPersonName"
+            android:text=""
+            android:textSize="20dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.434"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/txtid" />
+
+        <EditText
+            android:id="@+id/txtEmail"
+            android:layout_width="389dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:ems="10"
+            android:hint="Email"
+            android:inputType="textWebEmailAddress|textPersonName"
+            android:text=""
+            android:textSize="20dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.434"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/txtName" />
+
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>
+------------------------------------------------------------------------------------------
+MainActivity.kt
+----------------
+package com.example.mykotlincrud
+
+import android.support.v7.app.AppCompatActivity
+import android.os.Bundle
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ListView
+import android.widget.Toast
+
+
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        val save=findViewById<Button>(R.id.butSave)
+        val view=findViewById<Button>(R.id.butView)
+        //val delete=findViewById<Button>(R.id.butDelete)
+        val listView=findViewById<ListView>(R.id.listView)
+
+        val u_id=findViewById<EditText>(R.id.txtid)
+        val u_name=findViewById<EditText>(R.id.txtName)
+        val u_email=findViewById<EditText>(R.id.txtEmail)
+
+        save.setOnClickListener {
+            val id = u_id.text.toString()
+            val name = u_name.text.toString()
+            val email = u_email.text.toString()
+            val databaseHandler: DatabaseHandler= DatabaseHandler(this)
+            if(id.trim()!="" && name.trim()!="" && email.trim()!=""){
+                val status = databaseHandler.addEmployee(EmpModelClass(Integer.parseInt(id),name, email))
+                if(status > -1){
+                    Toast.makeText(applicationContext,"record save",Toast.LENGTH_LONG).show()
+                    u_id.text.clear()
+                    u_name.text.clear()
+                    u_email.text.clear()
+                }
+            }else{
+                Toast.makeText(applicationContext,"id or name or email cannot be blank",Toast.LENGTH_LONG).show()
+            }
+        }
+
+        view.setOnClickListener {
+            //creating the instance of DatabaseHandler class
+            val databaseHandler: DatabaseHandler= DatabaseHandler(this)
+            //calling the viewEmployee method of DatabaseHandler class to read the records
+            val emp: List<EmpModelClass> = databaseHandler.viewEmployee()
+            val empArrayId = Array<String>(emp.size){"0"}
+            val empArrayName = Array<String>(emp.size){"null"}
+            val empArrayEmail = Array<String>(emp.size){"null"}
+            var index = 0
+            for(e in emp){
+                empArrayId[index] = e.userId.toString()
+                empArrayName[index] = e.userName
+                empArrayEmail[index] = e.userEmail
+                index++
+            }
+            //creating custom ArrayAdapter
+            val myListAdapter = MyListAdapter(this,empArrayId,empArrayName,empArrayEmail)
+            listView.adapter = myListAdapter
+        }
+    }
+    fun deleteRecord(view:View) {
+        Toast.makeText(applicationContext,"Delete",Toast.LENGTH_LONG).show()
+    }
+}
+---------------------------------------------------------------------------------------------------
+custom_list.xml
+----------------
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/linearLayout">
+
+    <TextView
+        android:id="@+id/textViewId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Id"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"/>
+
+    <TextView
+        android:id="@+id/textViewName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Name"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"/>
+
+    <TextView
+        android:id="@+id/textViewEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Email"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"/>
+
+</LinearLayout>
+----------------------------------------------------------------------------------
+MyListAapter.kt
+-----------------
+package com.example.mykotlincrud
+
+import android.app.Activity
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.TextView
+
+class MyListAdapter(private val context: Activity, private val id: Array<String>, private val name: Array<String>, private val email: Array<String>)
+    : ArrayAdapter<String>(context, R.layout.custom_list, name) {
+
+    override fun getView(position: Int, view: View?, parent: ViewGroup): View {
+        val inflater = context.layoutInflater
+        val rowView = inflater.inflate(R.layout.custom_list, null, true)
+
+        val idText = rowView.findViewById(R.id.textViewId) as TextView
+        val nameText = rowView.findViewById(R.id.textViewName) as TextView
+        val emailText = rowView.findViewById(R.id.textViewEmail) as TextView
+
+        idText.text = "Id: ${id[position]}"
+        nameText.text = "Name: ${name[position]}"
+        emailText.text = "Email: ${email[position]}"
+        return rowView
+    }
+}
+----------------------------------------------------------------------------------------------------
+EmpModelClass.kt
+-----------------
+package com.example.mykotlincrud
+
+class EmpModelClass (var userId: Int, val userName:String , val userEmail: String)
+
+-----------------------------------------------------------------------------------------------------
+DatabaseHandler.kt
+--------------------
+package com.example.mykotlincrud
+
+import android.content.Context
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
+import android.content.ContentValues
+import android.database.Cursor
+import android.database.sqlite.SQLiteException
+
+//creating the database logic, extending the SQLiteOpenHelper base class
+class DatabaseHandler(context: Context): SQLiteOpenHelper(context,DATABASE_NAME,null,DATABASE_VERSION) {
+    companion object {
+        private val DATABASE_VERSION = 1
+        private val DATABASE_NAME = "EmployeeDatabase"
+        private val TABLE_CONTACTS = "EmployeeTable"
+        private val KEY_ID = "id"
+        private val KEY_NAME = "name"
+        private val KEY_EMAIL = "email"
+    }
+    override fun onCreate(db: SQLiteDatabase?) {
+        // TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        //creating table with fields
+        val CREATE_CONTACTS_TABLE = ("CREATE TABLE " + TABLE_CONTACTS + "("
+                + KEY_ID + " INTEGER PRIMARY KEY," + KEY_NAME + " TEXT,"
+                + KEY_EMAIL + " TEXT" + ")")
+        db?.execSQL(CREATE_CONTACTS_TABLE)
+    }
+
+    override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
+        //  TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        db!!.execSQL("DROP TABLE IF EXISTS " + TABLE_CONTACTS)
+        onCreate(db)
+    }
+
+
+    //method to insert data
+    fun addEmployee(emp: EmpModelClass):Long{
+        val db = this.writableDatabase
+        val contentValues = ContentValues()
+        contentValues.put(KEY_ID, emp.userId)
+        contentValues.put(KEY_NAME, emp.userName) // EmpModelClass Name
+        contentValues.put(KEY_EMAIL,emp.userEmail ) // EmpModelClass Phone
+        // Inserting Row
+        val success = db.insert(TABLE_CONTACTS, null, contentValues)
+        //2nd argument is String containing nullColumnHack
+        db.close() // Closing database connection
+        return success
+    }
+    //method to read data
+    fun viewEmployee():List<EmpModelClass>{
+        val empList:ArrayList<EmpModelClass> = ArrayList<EmpModelClass>()
+        val selectQuery = "SELECT  * FROM $TABLE_CONTACTS"
+        val db = this.readableDatabase
+        var cursor: Cursor? = null
+        try{
+            cursor = db.rawQuery(selectQuery, null)
+        }catch (e: SQLiteException) {
+            db.execSQL(selectQuery)
+            return ArrayList()
+        }
+        var userId: Int
+        var userName: String
+        var userEmail: String
+        if (cursor.moveToFirst()) {
+            do {
+                userId = cursor.getInt(cursor.getColumnIndex("id"))
+                userName = cursor.getString(cursor.getColumnIndex("name"))
+                userEmail = cursor.getString(cursor.getColumnIndex("email"))
+                val emp= EmpModelClass(userId = userId, userName = userName, userEmail = userEmail)
+                empList.add(emp)
+            } while (cursor.moveToNext())
+        }
+        return empList
+    }
+    //method to update data
+    fun updateEmployee(emp: EmpModelClass):Int{
+        val db = this.writableDatabase
+        val contentValues = ContentValues()
+        contentValues.put(KEY_ID, emp.userId)
+        contentValues.put(KEY_NAME, emp.userName) // EmpModelClass Name
+        contentValues.put(KEY_EMAIL,emp.userEmail ) // EmpModelClass Email
+
+        // Updating Row
+        val success = db.update(TABLE_CONTACTS, contentValues,"id="+emp.userId,null)
+        //2nd argument is String containing nullColumnHack
+        db.close() // Closing database connection
+        return success
+    }
+    //method to delete data
+    fun deleteEmployee(emp: EmpModelClass):Int{
+        val db = this.writableDatabase
+        val contentValues = ContentValues()
+        contentValues.put(KEY_ID, emp.userId) // EmpModelClass UserId
+        // Deleting Row
+        val success = db.delete(TABLE_CONTACTS,"id="+emp.userId,null)
+        //2nd argument is String containing nullColumnHack
+        db.close() // Closing database connection
+        return success
+    }
+}
